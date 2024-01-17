@@ -17,6 +17,10 @@ struct ContentView: View {
     @State private var errorMessage = ""
     @State private var showingError = false
     
+    @State private var gameScore = 0
+    
+    @State private var allWords = [String]()
+    
     
     var body: some View {
         NavigationStack {
@@ -39,7 +43,15 @@ struct ContentView: View {
                 }
             }
             .navigationTitle(rootWord)
-            // onSubmit is triggered when any text is submitted, it has to be given a function that accepts no parameters and returns nothing. this happens when
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Text("Score: \(gameScore)")
+                }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Restart", action: restartGame)
+                }
+            }
+            // onSubmit is triggered when any text is submitted, it has to be given a function that accepts no parameters and returns nothing.
             .onSubmit(addNewWord)
             // so when this view is shown, pick a random word
             .onAppear(perform: startGame)
@@ -76,6 +88,7 @@ struct ContentView: View {
         withAnimation{
             // please animate whats in this body
             usedWords.insert(answer, at: 0)
+            gameScore += 1
         }
         newWord = ""
             
@@ -87,10 +100,12 @@ struct ContentView: View {
         if let startWordsURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
             if let startWords = try? String(contentsOf: startWordsURL) {
                 // if you get the contents as a single string
-                let allWords = startWords.components(separatedBy: "\n")
+                allWords = startWords.components(separatedBy: "\n")
                 // then seperate the single long string by each line break to make an array of each word as each element
                 // now pick random word from here and assign it to the rootWord
                 rootWord = allWords.randomElement() ?? "silkworm" // don't forget to handle with nil colescing because its not guarenteed that randomElement will always be called on a non-empty array
+                
+                restartGame()
                 return
             }
         }
@@ -128,6 +143,13 @@ struct ContentView: View {
         errorTitle = title
         errorMessage = message
         showingError = true
+    }
+    
+    func restartGame() {
+        gameScore = 0
+        usedWords.removeAll()
+        newWord = ""
+        rootWord = allWords.randomElement() ?? "silkworm"
     }
 }
 
